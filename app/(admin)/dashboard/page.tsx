@@ -1,28 +1,50 @@
-export default function DashboardPage() {
+import { createServiceRoleClient } from '@/lib/supabase';
+import DashboardShell from '@/components/admin/DashboardShell';
+
+export const dynamic = 'force-dynamic';
+
+export default async function DashboardPage() {
+  const db = createServiceRoleClient();
+
+  const today = new Date().toISOString().split('T')[0];
+
+  const { data: seasons } = await db
+    .from('seasons')
+    .select()
+    .order('start_date', { ascending: true });
+
+  // Prefer the season currently active; fall back to the most recent one
+  const season =
+    (seasons ?? []).find((s) => s.start_date <= today && s.end_date >= today) ??
+    seasons?.[seasons.length - 1] ??
+    null;
+
+  if (!season) {
+    return (
+      <main className="px-6 py-8 max-w-7xl mx-auto">
+        <h1 className="text-2xl font-bold text-gray-900 mb-6">Dashboard</h1>
+        <p className="text-gray-500">No season configured yet.</p>
+      </main>
+    );
+  }
+
+  const [bookingsRes, sitesRes, zonesRes, guestsRes] = await Promise.all([
+    db.from('bookings').select().eq('season_id', season.id),
+    db.from('sites').select(),
+    db.from('zones').select(),
+    db.from('guests').select(),
+  ]);
+
   return (
-    <main className="min-h-screen px-6 py-12 max-w-7xl mx-auto">
-      <h1 className="text-3xl font-bold mb-8">Dashboard</h1>
-
-      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-        {[
-          { label: "Active Bookings", value: "—" },
-          { label: "Check-ins Today", value: "—" },
-          { label: "Revenue (MTD)", value: "—" },
-          { label: "Occupancy Rate", value: "—" },
-        ].map((stat) => (
-          <div
-            key={stat.label}
-            className="border rounded-lg p-6 text-center"
-          >
-            <p className="text-sm text-gray-500 mb-1">{stat.label}</p>
-            <p className="text-2xl font-bold">{stat.value}</p>
-          </div>
-        ))}
-      </div>
-
-      <p className="text-gray-500">
-        Dashboard charts and live data coming soon.
-      </p>
+    <main className="px-6 py-8 max-w-7xl mx-auto">
+      <h1 className="text-2xl font-bold text-gray-900 mb-6">Dashboard</h1>
+      <DashboardShell
+        season={season}
+        bookings={bookingsRes.data ?? []}
+        guests={guestsRes.data ?? []}
+        sites={sitesRes.data ?? []}
+        zones={zonesRes.data ?? []}
+      />
     </main>
   );
 }

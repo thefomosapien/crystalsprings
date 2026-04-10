@@ -1,33 +1,27 @@
-export default function BookingsPage() {
-  return (
-    <main className="min-h-screen px-6 py-12 max-w-7xl mx-auto">
-      <div className="flex items-center justify-between mb-8">
-        <h1 className="text-3xl font-bold">Bookings</h1>
-        <button className="bg-emerald-700 text-white rounded-lg px-4 py-2 text-sm font-semibold hover:bg-emerald-800 transition">
-          + New Booking
-        </button>
-      </div>
+import { createServiceRoleClient } from '@/lib/supabase';
+import BookingsShell from '@/components/admin/BookingsShell';
 
-      <div className="border rounded-lg overflow-hidden">
-        <table className="w-full text-left text-sm">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-4 py-3 font-medium">Guest</th>
-              <th className="px-4 py-3 font-medium">Site</th>
-              <th className="px-4 py-3 font-medium">Check-in</th>
-              <th className="px-4 py-3 font-medium">Check-out</th>
-              <th className="px-4 py-3 font-medium">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td className="px-4 py-8 text-center text-gray-400" colSpan={5}>
-                No bookings yet. Data will load from Supabase.
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+export const dynamic = 'force-dynamic';
+
+export default async function BookingsPage() {
+  const db = createServiceRoleClient();
+
+  const [bookingsRes, sitesRes, zonesRes, guestsRes] = await Promise.all([
+    db.from('bookings').select().order('created_at', { ascending: false }),
+    db.from('sites').select(),
+    db.from('zones').select(),
+    db.from('guests').select(),
+  ]);
+
+  return (
+    <main className="px-6 py-8 max-w-7xl mx-auto">
+      <h1 className="text-2xl font-bold text-gray-900 mb-6">Bookings</h1>
+      <BookingsShell
+        bookings={bookingsRes.data ?? []}
+        guests={guestsRes.data ?? []}
+        sites={sitesRes.data ?? []}
+        zones={zonesRes.data ?? []}
+      />
     </main>
   );
 }
