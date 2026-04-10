@@ -2,6 +2,8 @@ import { createServiceRoleClient } from '@/lib/supabase';
 import BrowseClient from '@/components/booking/BrowseClient';
 import { Site, Zone, Booking } from '@/lib/types';
 
+export const dynamic = 'force-dynamic';
+
 export default async function BrowsePage() {
   const supabase = createServiceRoleClient();
 
