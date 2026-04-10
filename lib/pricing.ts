@@ -18,7 +18,6 @@ function isWeekend(date: Date): boolean {
 function isInPeakSeason(date: Date, seasons: Season[]): boolean {
   return seasons.some(
     (s) =>
-      s.season_type === 'peak' &&
       date >= new Date(s.start_date) &&
       date <= new Date(s.end_date),
   );
