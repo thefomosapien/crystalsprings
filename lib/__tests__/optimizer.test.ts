@@ -1,4 +1,4 @@
-import { scoreSites, ScoredSite } from '../optimizer';
+import { scoreSites } from '../optimizer';
 import { PRICING_RULES } from '../pricing.config';
 import { Booking, Site } from '../types';
 
